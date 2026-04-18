@@ -82,12 +82,19 @@ fn run_executes_full_phase1_flow() {
         serde_json::from_str(&fs::read_to_string(entries[0].path()).unwrap()).unwrap();
     let container_id = state_value["container_id"].as_str().unwrap();
     assert_eq!(state_value["bundle_path"], bundle.path().to_str().unwrap());
-    assert_eq!(state_value["status"], "created");
+    assert_eq!(state_value["status"], "exited");
 
     let args = fs::read_to_string(args_log).unwrap();
-    assert!(args.contains("run"));
-    assert!(args.contains(bundle.path().to_str().unwrap()));
-    assert!(args.contains(container_id));
+    let args = args.lines().collect::<Vec<_>>();
+    assert_eq!(
+        args,
+        vec![
+            "run",
+            "--bundle",
+            bundle.path().to_str().unwrap(),
+            container_id
+        ]
+    );
 }
 
 #[test]
@@ -104,8 +111,9 @@ fn run_surfaces_youki_failures() {
         .env("MYDOCKER_STATE_ROOT", state_root.path())
         .env("PATH", prepend_to_path(bin_dir.path()))
         .assert()
-        .failure()
-        .stderr(contains("youki exited with status 17"));
+        .code(17)
+        .stderr(contains("failed to run container with youki"))
+        .stderr(contains("exit status 17"));
 
     let mut entries = fs::read_dir(state_root.path())
         .unwrap()
@@ -118,4 +126,20 @@ fn run_surfaces_youki_failures() {
     let state_value: serde_json::Value =
         serde_json::from_str(&fs::read_to_string(entries[0].path()).unwrap()).unwrap();
     assert_eq!(state_value["status"], "runtime_failed");
+}
+
+#[test]
+fn run_reports_missing_youki_binary() {
+    let bundle = create_bundle();
+    let state_root = tempfile::tempdir().unwrap();
+
+    Command::cargo_bin("mydocker")
+        .unwrap()
+        .args(["run", bundle.path().to_str().unwrap()])
+        .env("MYDOCKER_STATE_ROOT", state_root.path())
+        .env("PATH", "")
+        .assert()
+        .failure()
+        .stderr(contains("failed to run container with youki"))
+        .stderr(contains("command not found"));
 }

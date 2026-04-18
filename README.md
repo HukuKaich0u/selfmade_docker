@@ -59,6 +59,9 @@ Phase 1 で保存する最小 state:
 - `container_id`
 - `bundle_path`
 - `status`
+  - 実行開始直後: `created`
+  - 正常終了後: `exited`
+  - runtime 失敗時: `runtime_failed`
 
 `youki` はこのプロジェクトの生成物ではなく、事前にインストールされている前提の外部依存です。
 
@@ -84,6 +87,8 @@ Ubuntu EC2 での手順は次を前提とします。
 - `youki` が `PATH` 上にある
 - FastAPI bundle が事前に用意されている
 - セキュリティグループとホスト側設定でアプリの listen port が開いている
+
+このリポジトリ内では EC2 実機 smoke の手順までを整備しています。実機実行そのものは、対象 EC2 と bundle にアクセスできる環境で別途行ってください。
 
 確認コマンド:
 

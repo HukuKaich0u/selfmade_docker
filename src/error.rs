@@ -15,13 +15,22 @@ impl Display for AppError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Bundle(error) => Display::fmt(error, f),
-            Self::Runtime(error) => Display::fmt(error, f),
+            Self::Runtime(error) => write!(f, "failed to run container with youki: {error}"),
             Self::State(error) => Display::fmt(error, f),
         }
     }
 }
 
 impl Error for AppError {}
+
+impl AppError {
+    pub fn exit_code(&self) -> i32 {
+        match self {
+            Self::Runtime(RuntimeError::ExitStatus(code)) => *code,
+            _ => 1,
+        }
+    }
+}
 
 impl From<BundleError> for AppError {
     fn from(value: BundleError) -> Self {

@@ -31,6 +31,7 @@ impl Display for ContainerId {
 #[serde(rename_all = "snake_case")]
 pub enum StateStatus {
     Created,
+    Exited,
     RuntimeFailed,
 }
 
@@ -90,6 +91,12 @@ impl StateStore {
     }
 
     pub fn update_status(&self, container_id: &str, status: StateStatus) -> Result<(), StateError> {
+        let mut record = self.load(container_id)?;
+        record.status = status;
+        self.write(&record)
+    }
+
+    pub fn load(&self, container_id: &str) -> Result<StateRecord, StateError> {
         let path = self.state_file(container_id);
         let content = fs::read_to_string(&path).map_err(|error| {
             StateError::new(format!(
@@ -97,14 +104,12 @@ impl StateStore {
                 path.display()
             ))
         })?;
-        let mut record: StateRecord = serde_json::from_str(&content).map_err(|error| {
+        serde_json::from_str(&content).map_err(|error| {
             StateError::new(format!(
                 "failed to parse state file {}: {error}",
                 path.display()
             ))
-        })?;
-        record.status = status;
-        self.write(&record)
+        })
     }
 
     fn write(&self, record: &StateRecord) -> Result<(), StateError> {
@@ -134,4 +139,37 @@ fn generate_container_id() -> ContainerId {
         .unwrap_or_default()
         .as_nanos();
     ContainerId(format!("mydocker-{nanos:x}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    fn create_bundle() -> tempfile::TempDir {
+        let temp = tempfile::tempdir().unwrap();
+        fs::write(temp.path().join("config.json"), "{}").unwrap();
+        fs::create_dir(temp.path().join("rootfs")).unwrap();
+        temp
+    }
+
+    #[test]
+    fn load_reads_existing_state_record() {
+        let bundle = create_bundle();
+        let state_root = tempfile::tempdir().unwrap();
+        unsafe {
+            std::env::set_var("MYDOCKER_STATE_ROOT", state_root.path());
+        }
+
+        let validated = crate::bundle::validate(bundle.path()).unwrap();
+        let store = StateStore::new().unwrap();
+        let created = store.create_initial_state(&validated).unwrap();
+        let loaded = store.load(created.container_id.as_ref()).unwrap();
+
+        assert_eq!(loaded, created);
+
+        unsafe {
+            std::env::remove_var("MYDOCKER_STATE_ROOT");
+        }
+    }
 }

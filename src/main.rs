@@ -1,14 +1,13 @@
 mod cli;
 
 use clap::Parser;
-use std::process::ExitCode;
 
-fn main() -> ExitCode {
+fn main() {
     match try_main() {
-        Ok(()) => ExitCode::SUCCESS,
+        Ok(()) => {}
         Err(error) => {
             eprintln!("{error}");
-            ExitCode::FAILURE
+            std::process::exit(error.exit_code());
         }
     }
 }

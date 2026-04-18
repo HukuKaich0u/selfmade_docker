@@ -41,6 +41,12 @@ Saved fields in Phase 1:
 - `bundle_path`
 - `status`
 
+Expected status transitions in Phase 1:
+
+- initial write: `created`
+- successful `youki run` completion: `exited`
+- runtime launch or execution failure: `runtime_failed`
+
 ## Manual EC2 Smoke
 
 Build the binary locally or on the EC2 host:
@@ -54,6 +60,8 @@ Run the bundle:
 ```bash
 ./target/debug/mydocker run /path/to/fastapi-bundle
 ```
+
+If the run succeeds, inspect the saved state file under `/run/mydocker` and confirm the final status is `exited`.
 
 After the container is up, verify the sample app with HTTP requests. Replace host, port, and payload with the values used by your FastAPI bundle.
 
