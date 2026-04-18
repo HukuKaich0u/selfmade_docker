@@ -96,9 +96,26 @@ Ubuntu EC2 での手順は次を前提とします。
 - FastAPI bundle が事前に用意されている
 - セキュリティグループとホスト側設定でアプリの listen port が開いている
 
-このリポジトリ内では EC2 実機 smoke の手順までを整備しています。実機実行そのものは、対象 EC2 と bundle にアクセスできる環境で別途行ってください。
+今回の実機確認では、FastAPI app を Docker image として作成し、`docker save` + `skopeo copy docker-archive:... oci:...` + `umoci unpack` で `OCI bundle` に変換しました。`mydocker` 自体は bundle を生成しないため、この bundle 準備は外部手順です。
 
-確認コマンド:
+実機で確認した最小フロー:
+
+```bash
+which youki
+youki --help
+cargo build
+sudo env "PATH=$PATH" ./target/debug/mydocker run /home/ubuntu/fastapi-bundle
+curl http://127.0.0.1:8000/health
+curl http://<ec2-public-ip>:8000/health
+```
+
+補足:
+
+- FastAPI bundle は host から到達確認するため、`config.json` から `network` namespace を外した
+- EC2 上では `ss -ltnp | grep 8000` で `0.0.0.0:8000` listen を確認した
+- `ufw` は inactive だったため、外部疎通で詰まる場合は security group を先に確認する
+
+lifecycle 確認コマンド:
 
 ```bash
 which youki
@@ -114,6 +131,7 @@ youki --help
 
 ```bash
 curl http://<ec2-public-ip>:8000/health
+curl http://<ec2-public-ip>:8000/items
 curl -X POST http://<ec2-public-ip>:8000/items -H 'content-type: application/json' -d '{"name":"demo"}'
 curl http://<ec2-public-ip>:8000/items
 curl -X PUT http://<ec2-public-ip>:8000/items/1 -H 'content-type: application/json' -d '{"name":"updated"}'

@@ -51,6 +51,15 @@ Expected status transitions in Phase 1:
 
 ## Manual EC2 Smoke
 
+One working path used in manual verification was:
+
+1. build a FastAPI Docker image
+2. export it with `docker save`
+3. convert it with `skopeo copy docker-archive:... oci:...`
+4. unpack it with `umoci unpack`
+5. remove the `network` namespace from `config.json`
+6. run it with `mydocker`
+
 Build the binary locally or on the EC2 host:
 
 ```bash
@@ -74,10 +83,27 @@ container_id=$(./target/debug/mydocker create /path/to/fastapi-bundle)
 
 If the run succeeds, inspect the saved state file under `/run/mydocker` and confirm the final status is `exited`.
 
+Useful checks during EC2 debugging:
+
+```bash
+ss -ltnp | grep 8000
+curl http://127.0.0.1:8000/health
+curl http://<ec2-public-ip>:8000/health
+sudo ufw status
+```
+
+Expected results from the validated EC2 flow:
+
+- the app listens on `0.0.0.0:8000`
+- `curl http://127.0.0.1:8000/health` returns `{"status":"ok"}`
+- `curl http://<ec2-public-ip>:8000/health` returns `{"status":"ok"}`
+- if localhost works and public IP hangs, check the EC2 security group first
+
 After the container is up, verify the sample app with HTTP requests. Replace host, port, and payload with the values used by your FastAPI bundle.
 
 ```bash
 curl http://<ec2-public-ip>:8000/health
+curl http://<ec2-public-ip>:8000/items
 curl -X POST http://<ec2-public-ip>:8000/items -H 'content-type: application/json' -d '{"name":"demo"}'
 curl http://<ec2-public-ip>:8000/items
 curl -X PUT http://<ec2-public-ip>:8000/items/1 -H 'content-type: application/json' -d '{"name":"updated"}'
