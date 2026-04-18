@@ -25,6 +25,35 @@ Required entries:
 - inbound traffic allowed to the FastAPI listen port by security group and host firewall
 - the OCI bundle prepared in advance
 
+If you are updating the real FastAPI app for all instances, build the Docker image once and publish a new bundle archive to S3 from one build machine. Do not rebuild the bundle separately on every app EC2 instance.
+
+```bash
+scripts/publish_fastapi_bundle.sh \
+  --image fastapi-demo:latest \
+  --bucket selfmade-docker-bundles-245381852209-apne1 \
+  --key bundles/fastapi-bundle.tar.gz
+```
+
+On Ubuntu, install missing publish dependencies automatically and then publish:
+
+```bash
+scripts/publish_fastapi_bundle.sh \
+  --image fastapi-demo:latest \
+  --bucket selfmade-docker-bundles-245381852209-apne1 \
+  --key bundles/fastapi-bundle.tar.gz \
+  --install-missing
+```
+
+Check prerequisites first if needed:
+
+```bash
+scripts/publish_fastapi_bundle.sh \
+  --image fastapi-demo:latest \
+  --bucket selfmade-docker-bundles-245381852209-apne1 \
+  --key bundles/fastapi-bundle.tar.gz \
+  --check-only
+```
+
 Check runtime availability:
 
 ```bash

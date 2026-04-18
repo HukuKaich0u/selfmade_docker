@@ -88,6 +88,66 @@ bundle/
 └── rootfs/
 ```
 
+## Bundle Publish
+
+`mydocker` は `Dockerfile` や image を直接扱いません。実際に配る前に、FastAPI app を `OCI bundle` に変換して S3 に置く必要があります。
+
+このリポジトリには、そのための script を置いてあります。
+
+```bash
+scripts/publish_fastapi_bundle.sh \
+  --image fastapi-demo:latest \
+  --bucket selfmade-docker-bundles-245381852209-apne1 \
+  --key bundles/fastapi-bundle.tar.gz
+```
+
+Ubuntu で依存導入から一撃でやりたいとき:
+
+```bash
+scripts/publish_fastapi_bundle.sh \
+  --image fastapi-demo:latest \
+  --bucket selfmade-docker-bundles-245381852209-apne1 \
+  --key bundles/fastapi-bundle.tar.gz \
+  --install-missing
+```
+
+この script がやること:
+
+- `docker save`
+- `skopeo copy docker-archive:... oci:...`
+- `umoci unpack`
+- `config.json` から `network` namespace を除去
+- `fastapi-bundle.tar.gz` を作成
+- S3 へ upload
+
+どこで実行するか:
+
+- build 用の 1 台のマシンだけで実行する
+- 例: 開発用 EC2、CI runner、手元の Linux ホスト
+- app を動かす全 EC2 で実行する必要はない
+
+前提コマンド:
+
+- `docker`
+- `skopeo`
+- `umoci`
+- `jq`
+- `aws`
+
+前提確認だけ先にしたいとき:
+
+```bash
+scripts/publish_fastapi_bundle.sh \
+  --image fastapi-demo:latest \
+  --bucket selfmade-docker-bundles-245381852209-apne1 \
+  --key bundles/fastapi-bundle.tar.gz \
+  --check-only
+```
+
+足りないコマンドがあれば、script 自体が不足一覧と導入ヒントを表示します。
+
+`--install-missing` は内部的に [scripts/install_bundle_publish_deps.sh](/Users/KokiAoyagi/Documents/repos/personal/selfmade_docker/scripts/install_bundle_publish_deps.sh) を呼び、Ubuntu 上で `docker.io`, `skopeo`, `umoci`, `jq`, `unzip`, AWS CLI v2 を自動導入します。
+
 ## EC2 Smoke
 
 Ubuntu EC2 での手順は次を前提とします。
@@ -114,6 +174,7 @@ curl http://<ec2-public-ip>:8000/health
 - FastAPI bundle は host から到達確認するため、`config.json` から `network` namespace を外した
 - EC2 上では `ss -ltnp | grep 8000` で `0.0.0.0:8000` listen を確認した
 - `ufw` は inactive だったため、外部疎通で詰まる場合は security group を先に確認する
+- Launch Template 配備では、bundle 自体は S3 に置き、各 EC2 は起動時にそれを取得する
 
 lifecycle 確認コマンド:
 
