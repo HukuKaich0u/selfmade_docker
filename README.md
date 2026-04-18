@@ -46,13 +46,21 @@ Rust 製の Docker 風コンテナ管理ツールを作る。
 - namespace / cgroup / mount を直接扱う low-level runtime 実装
 - OCI runtime spec の完全実装
 
-## Phase 1 Behavior
+## Lifecycle Commands
 
-Phase 1 の CLI は `mydocker run <bundle>` のみを提供します。
+現在の CLI は次を提供します。
+
+- `mydocker create <bundle>`
+- `mydocker start <container_id>`
+- `mydocker delete <container_id>`
+- `mydocker state <container_id>`
+- `mydocker run <bundle>`
 
 - `config.json` と `rootfs/` の存在を確認する
-- `youki run` を外部 runtime として呼び出す
+- `youki create/start/delete` を外部 runtime として呼び出す
 - `/run/mydocker` 配下に最小 state を保存する
+
+`mydocker run <bundle>` は内部的には `create + start` の合成として扱います。
 
 Phase 1 で保存する最小 state:
 
@@ -95,6 +103,10 @@ Ubuntu EC2 での手順は次を前提とします。
 ```bash
 which youki
 youki --help
+./target/debug/mydocker create /path/to/fastapi-bundle
+./target/debug/mydocker state <container_id>
+./target/debug/mydocker start <container_id>
+./target/debug/mydocker delete <container_id>
 ./target/debug/mydocker run /path/to/fastapi-bundle
 ```
 

@@ -1,6 +1,7 @@
 # FastAPI OCI Bundle Example
 
-Phase 1 assumes an existing OCI bundle for a FastAPI app. `mydocker` does not build images or generate bundles. It validates the bundle layout, saves minimal state, and delegates container execution to `youki run`.
+Phase 1 assumes an existing OCI bundle for a FastAPI app. `mydocker` does not build images or generate bundles. It validates the bundle layout, saves minimal state, and delegates container execution to `youki`.
+Current lifecycle work delegates container execution to `youki create/start/delete`, and `mydocker run` is implemented as `create + start`.
 
 ## Expected Bundle Layout
 
@@ -44,7 +45,8 @@ Saved fields in Phase 1:
 Expected status transitions in Phase 1:
 
 - initial write: `created`
-- successful `youki run` completion: `exited`
+- after `start` begins: `running`
+- successful `start` completion: `exited`
 - runtime launch or execution failure: `runtime_failed`
 
 ## Manual EC2 Smoke
@@ -59,6 +61,15 @@ Run the bundle:
 
 ```bash
 ./target/debug/mydocker run /path/to/fastapi-bundle
+```
+
+The equivalent explicit lifecycle flow is:
+
+```bash
+container_id=$(./target/debug/mydocker create /path/to/fastapi-bundle)
+./target/debug/mydocker state "$container_id"
+./target/debug/mydocker start "$container_id"
+./target/debug/mydocker delete "$container_id"
 ```
 
 If the run succeeds, inspect the saved state file under `/run/mydocker` and confirm the final status is `exited`.

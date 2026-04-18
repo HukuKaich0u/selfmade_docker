@@ -8,6 +8,10 @@ use std::fmt::{Display, Formatter};
 pub enum AppError {
     Bundle(BundleError),
     Runtime(RuntimeError),
+    RunRollback {
+        cause: RuntimeError,
+        rollback: Box<AppError>,
+    },
     State(StateError),
 }
 
@@ -16,6 +20,10 @@ impl Display for AppError {
         match self {
             Self::Bundle(error) => Display::fmt(error, f),
             Self::Runtime(error) => write!(f, "failed to run container with youki: {error}"),
+            Self::RunRollback { cause, rollback } => write!(
+                f,
+                "failed to run container with youki: {cause}; rollback failed: {rollback}"
+            ),
             Self::State(error) => Display::fmt(error, f),
         }
     }
@@ -27,6 +35,10 @@ impl AppError {
     pub fn exit_code(&self) -> i32 {
         match self {
             Self::Runtime(RuntimeError::ExitStatus(code)) => *code,
+            Self::RunRollback {
+                cause: RuntimeError::ExitStatus(code),
+                ..
+            } => *code,
             _ => 1,
         }
     }
