@@ -1,0 +1,50 @@
+version: "2026.04.17"
+phrases:
+  - key: ack_yes
+    text: "了解しました"
+  - key: ack_no
+    text: "難しいです"
+  - key: ack_wait
+    text: "少し待ってください"
+  - key: status_ok
+    text: "問題ありません"
+  - key: status_help
+    text: "助けてください"
+  - key: status_arrived
+    text: "到着しました"
+  - key: status_depart
+    text: "出発します"
+  - key: status_return
+    text: "戻ります"
+  - key: status_search
+    text: "探索を開始します"
+  - key: status_found
+    text: "対象を発見しました"
+  - key: status_not_found
+    text: "対象は見つかりません"
+  - key: status_stop
+    text: "停止してください"
+  - key: status_resume
+    text: "再開してください"
+  - key: status_danger
+    text: "危険です"
+  - key: status_safe
+    text: "安全を確認しました"
+  - key: status_follow
+    text: "こちらへ来てください"
+  - key: status_hold
+    text: "その場で待機してください"
+  - key: status_charge
+    text: "充電が必要です"
+  - key: status_complete
+    text: "作業完了です"
+  - key: status_retry
+    text: "もう一度お願いします"
+  - key: status_receive
+    text: "受信しました"
+  - key: status_send
+    text: "送信します"
+  - key: status_weather
+    text: "天候が悪化しています"
+  - key: status_clear
+    text: "周囲はクリアです"

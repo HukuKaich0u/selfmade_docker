@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iruka-cnn"
+version = "0.1.0"
+description = "Fixed-vocabulary dolphin-like whistle communication with CNN-based decoding"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "matplotlib>=3.9",
+  "numpy>=2.1",
+  "PyYAML>=6.0.2",
+  "scikit-learn>=1.6",
+  "sounddevice>=0.5",
+  "soundfile>=0.13",
+  "torch>=2.8",
+  "torchaudio>=2.8",
+  "tqdm>=4.67",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+]
+
+[project.scripts]
+iruka-sender = "iruka_cnn.sender.sender_cli:main"
+iruka-receiver = "iruka_cnn.receiver.receiver_cli:main"
+iruka-stream-receiver = "iruka_cnn.receiver.stream_receiver_cli:main"
+iruka-train = "iruka_cnn.training.train:main"
+iruka-eval = "iruka_cnn.training.eval:main"
+iruka-generate-dataset = "iruka_cnn.training.datagen:main"
+iruka-visualize-audio = "iruka_cnn.training.visualize_audio_cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

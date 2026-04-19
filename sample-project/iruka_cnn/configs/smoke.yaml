@@ -1,0 +1,82 @@
+experiment:
+  name: smoke
+  seed: 7
+  output_dir: artifacts
+
+dictionary:
+  phrases_path: data/phrases.yaml
+
+audio:
+  sample_rate: 24000
+  clip_seconds: 2.5
+  min_phrase_seconds: 1.0
+  max_phrase_seconds: 2.5
+  silence_threshold_dbfs: -48.0
+
+features:
+  n_fft: 1024
+  hop_length: 256
+  n_mels: 64
+  f_min: 300
+  f_max: 12000
+  top_db: 80.0
+
+dataset:
+  train_per_phrase: 12
+  val_per_phrase: 4
+  test_per_phrase: 4
+  unknown_per_split: 16
+  silence_per_split: 8
+  overwrite: true
+  cache_features: true
+  cache_dtype: float16
+
+training:
+  batch_size: 16
+  epochs: 2
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  embedding_dim: 128
+  num_workers: auto
+  persistent_workers: true
+  prefetch_factor: 4
+  device: auto
+  class_weighting: true
+  save_best_only: true
+
+inference:
+  confidence_threshold: 0.68
+  margin_threshold: 0.08
+  top_k: 5
+
+streaming:
+  segment_gap_ms: 300
+  frame_ms: 20
+  start_ms: 60
+  end_ms: 240
+  provisional_interval_ms: 150
+  min_provisional_ms: 700
+  stability_count: 3
+  min_segment_ms: 300
+  max_segment_seconds: 2.8
+
+evaluation:
+  condition: clean
+  render_confusion_matrix: true
+
+augmentation:
+  enable: true
+  mode: feature
+  gain_db: 3.0
+  speed_range: [0.97, 1.03]
+  pitch_semitones: 0.5
+  reverb_decay: 0.15
+  noise_snr_db: [20.0, 30.0]
+  eq_strength_db: 2.5
+  silence_jitter_ms: 70
+  feature_gain_db: 1.25
+  feature_noise_std: 0.02
+  feature_time_shift_frames: 10
+  feature_time_mask_max_frames: 14
+  feature_freq_mask_max_bins: 5
+  feature_mel_shift_max_bins: 2
